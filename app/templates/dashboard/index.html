@@ -90,11 +90,16 @@
                 {% endfor %}
               </div>
             {% else %}
-              <div class="empty-state" style="padding: 2rem 1rem;">
-                <div class="empty-icon-text">[No Posts]</div>
-                <h4>No active posts</h4>
-                <p>You haven't reported any lost or found items yet.</p>
-                <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
+              <div style="text-align: center; padding: 2.5rem 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--primary);">
+                  <svg style="width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2;" viewBox="0 0 24 24">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                </div>
+                <h4 style="margin-bottom: 0.35rem;">No active posts</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">You haven't reported any lost or found belongings yet.</p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center;">
                   <a href="{{ url_for('items.post_lost') }}" class="btn btn-sm btn-primary">+ Report Item</a>
                 </div>
               </div>

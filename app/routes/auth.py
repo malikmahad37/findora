@@ -152,7 +152,7 @@ def login():
         if user.is_admin:
             return redirect(url_for('admin.dashboard'))
 
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('main.index'))
 
     return render_template('auth/login.html', form=form)
 

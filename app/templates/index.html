@@ -307,12 +307,20 @@
         {% endfor %}
       </div>
     {% else %}
-      <div class="empty-state card">
-        <div class="empty-icon-text">[No Items]</div>
-        <h3>No items reported yet</h3>
-        <p>Be the first to report a lost or found item in your area!</p>
-        <div style="margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: center;">
-          <a href="{{ url_for('items.post_lost') }}" class="btn btn-primary btn-sm">+ Report Item</a>
+      <div class="card" style="text-align: center; padding: 3rem 1.5rem; border: 1.5px dashed var(--border-color); background: var(--bg-card); border-radius: var(--border-radius-lg);">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; color: var(--primary);">
+          <svg style="width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2;" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem;">No items reported yet</h3>
+        <p style="color: var(--text-secondary); max-width: 420px; margin: 0 auto 1.5rem; font-size: 0.9rem;">
+          Be the first to report a lost or found belonging in your city or campus!
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+          <a href="{{ url_for('items.post_lost') }}" class="btn btn-primary btn-sm">+ Report Lost Item</a>
+          <a href="{{ url_for('items.post_found') }}" class="btn btn-secondary btn-sm">+ Report Found Item</a>
         </div>
       </div>
     {% endif %}
