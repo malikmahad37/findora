@@ -347,6 +347,165 @@ document.addEventListener('DOMContentLoaded', function () {
     ta.addEventListener('input', update);
     update();
   });
+
+  // ─────────────────────────────────────────────
+  //  HERO SECTION — 60 FPS 3D PARTICLE NETWORK & 3D TILT
+  // ─────────────────────────────────────────────
+  var heroCanvas = document.getElementById('hero-3d-canvas');
+  var heroSection = document.getElementById('hero-premium');
+  
+  if (heroCanvas && heroSection) {
+    var ctx = heroCanvas.getContext('2d');
+    var particles = [];
+    var particleCount = window.innerWidth < 768 ? 22 : 42; // Responsive density for zero lag
+    var width, height;
+    var mouse = { x: -1000, y: -1000, radius: 140 };
+    var animFrameId = null;
+
+    function resizeCanvas() {
+      width = heroCanvas.width = heroSection.offsetWidth;
+      height = heroCanvas.height = heroSection.offsetHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas, { passive: true });
+
+    // 3D Particle Object
+    function Particle() {
+      this.reset(true);
+    }
+
+    Particle.prototype.reset = function (initial) {
+      this.x = Math.random() * width;
+      this.y = initial ? Math.random() * height : height + 10;
+      this.z = Math.random() * 1.5 + 0.5; // Depth factor (3D parallax)
+      this.radius = (Math.random() * 2 + 1.2) * this.z;
+      this.vx = (Math.random() - 0.5) * 0.45 * this.z;
+      this.vy = -(Math.random() * 0.45 + 0.2) * this.z;
+      this.baseAlpha = Math.random() * 0.4 + 0.25;
+    };
+
+    Particle.prototype.update = function () {
+      this.x += this.vx;
+      this.y += this.vy;
+
+      // Mouse interactive push
+      var dx = mouse.x - this.x;
+      var dy = mouse.y - this.y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < mouse.radius) {
+        var force = (mouse.radius - dist) / mouse.radius;
+        var angle = Math.atan2(dy, dx);
+        this.x -= Math.cos(angle) * force * 2.5;
+        this.y -= Math.sin(angle) * force * 2.5;
+      }
+
+      // Loop boundaries
+      if (this.y < -10 || this.x < -20 || this.x > width + 20) {
+        this.reset(false);
+      }
+    };
+
+    Particle.prototype.draw = function () {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var color = isDark ? '147, 197, 253' : '79, 70, 229'; // Indigo / Sky
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + color + ', ' + this.baseAlpha + ')';
+      ctx.shadowBlur = this.z > 1.2 ? 8 : 0;
+      ctx.shadowColor = 'rgba(' + color + ', 0.5)';
+      ctx.fill();
+    };
+
+    // Initialize particles
+    for (var i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    // Connect particles with 3D depth lines
+    function drawLines() {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var lineColor = isDark ? '99, 102, 241' : '99, 102, 241';
+      var maxDist = 115;
+
+      for (var a = 0; a < particles.length; a++) {
+        for (var b = a + 1; b < particles.length; b++) {
+          var p1 = particles[a];
+          var p2 = particles[b];
+          var dx = p1.x - p2.x;
+          var dy = p1.y - p2.y;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < maxDist) {
+            var alpha = (1 - dist / maxDist) * 0.18 * ((p1.z + p2.z) / 2);
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = 'rgba(' + lineColor + ', ' + alpha + ')';
+            ctx.lineWidth = 0.8 * ((p1.z + p2.z) / 2);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    // Animation Loop (High Performance 60FPS)
+    var isHeroVisible = true;
+    var heroObserver = new IntersectionObserver(function (entries) {
+      isHeroVisible = entries[0].isIntersecting;
+      if (isHeroVisible && !animFrameId) {
+        animate();
+      }
+    }, { threshold: 0.1 });
+    heroObserver.observe(heroSection);
+
+    function animate() {
+      if (!isHeroVisible) {
+        animFrameId = null;
+        return;
+      }
+      ctx.clearRect(0, 0, width, height);
+
+      for (var i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+      }
+      drawLines();
+
+      animFrameId = requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Mouse coordinates tracker
+    heroSection.addEventListener('mousemove', function (e) {
+      var rect = heroCanvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    }, { passive: true });
+
+    heroSection.addEventListener('mouseleave', function () {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    }, { passive: true });
+
+    // Smooth 3D Card Tilt effect
+    var card = heroSection.querySelector('.smart-match-preview-card');
+    if (card && window.innerWidth > 992) {
+      heroSection.addEventListener('mousemove', function (e) {
+        var rect = heroSection.getBoundingClientRect();
+        var x = e.clientX - rect.left - rect.width / 2;
+        var y = e.clientY - rect.top - rect.height / 2;
+
+        var rotX = -(y / rect.height) * 14;
+        var rotY = (x / rect.width) * 18;
+
+        card.style.transform = 'perspective(1000px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg) translateZ(10px)';
+      }, { passive: true });
+
+      heroSection.addEventListener('mouseleave', function () {
+        card.style.transform = 'perspective(1000px) rotateX(2deg) rotateY(-3deg) translateZ(0)';
+      }, { passive: true });
+    }
+  }
 });
 
 // ─────────────────────────────────────────────
