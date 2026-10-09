@@ -487,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function () {
       mouse.y = -1000;
     }, { passive: true });
 
-    // Smooth 3D Card Tilt effect
+    // Smooth 3D Card Tilt effect for Hero Match Card
     var card = heroSection.querySelector('.smart-match-preview-card');
     if (card && window.innerWidth > 992) {
       heroSection.addEventListener('mousemove', function (e) {
@@ -505,6 +505,26 @@ document.addEventListener('DOMContentLoaded', function () {
         card.style.transform = 'perspective(1000px) rotateX(2deg) rotateY(-3deg) translateZ(0)';
       }, { passive: true });
     }
+  }
+
+  // ─────────────────────────────────────────────
+  //  UNIVERSAL 3D CARD TILT FOR ITEM & FEATURE CARDS (Desktop, Passive 60FPS)
+  // ─────────────────────────────────────────────
+  if (window.innerWidth > 992) {
+    document.querySelectorAll('.item-card, .feature-card').forEach(function (cardEl) {
+      cardEl.addEventListener('mousemove', function (e) {
+        var rect = cardEl.getBoundingClientRect();
+        var x = e.clientX - rect.left - rect.width / 2;
+        var y = e.clientY - rect.top - rect.height / 2;
+        var rotX = -(y / rect.height) * 10;
+        var rotY = (x / rect.width) * 10;
+        cardEl.style.transform = 'perspective(800px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg) translateY(-6px) translateZ(8px)';
+      }, { passive: true });
+
+      cardEl.addEventListener('mouseleave', function () {
+        cardEl.style.transform = '';
+      }, { passive: true });
+    });
   }
 });
 
