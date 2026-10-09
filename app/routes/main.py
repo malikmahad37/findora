@@ -32,10 +32,6 @@ def index():
     )
 
 
-@main_bp.route('/about')
-def about():
-    return render_template('about.html')
-
 
 @main_bp.route('/browse')
 def browse():
