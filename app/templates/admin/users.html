@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users — Admin Console{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <h3>Admin Console</h3>
+    </div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link"><span class="nav-icon"></span> Overview</a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-link active"><span class="nav-icon"></span> Manage Users</a>
+      <a href="{{ url_for('admin.posts') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Posts</a>
+      <a href="{{ url_for('admin.claims') }}" class="admin-nav-link"><span class="nav-icon"></span> Claims Review</a>
+      <a href="{{ url_for('admin.reports') }}" class="admin-nav-link"><span class="nav-icon"></span> Flagged Reports</a>
+      <a href="{{ url_for('admin.locations') }}" class="admin-nav-link"><span class="nav-icon"></span> Dynamic Locations</a>
+      <a href="{{ url_for('admin.categories') }}" class="admin-nav-link"><span class="nav-icon"></span> Categories</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1>Registered Users</h1>
+        <p>Review member profiles, roles, and status</p>
+      </div>
+      <div>
+        <form method="GET" action="{{ url_for('admin.users') }}" style="display: flex; gap: 0.5rem;">
+          <input type="text" name="q" value="{{ q }}" placeholder="Search by name or email..." class="form-control" style="width: 240px;">
+          <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Posts Count</th>
+                <th>Joined</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in users %}
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                      <div class="avatar-circle" style="width: 32px; height: 32px; font-size: 0.75rem;">
+                        {% if u.avatar %}
+                          <img src="{{ url_for('static', filename='uploads/' ~ u.avatar) }}" alt="{{ u.full_name }}">
+                        {% else %}
+                          {{ u.initials() }}
+                        {% endif %}
+                      </div>
+                      <div>
+                        <strong><a href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.full_name }}</a></strong>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ u.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge-status {% if u.is_admin %}badge-resolved{% else %}badge-active{% endif %}">
+                      {{ u.role }}
+                    </span>
+                  </td>
+                  <td>{{ u.items.count() }}</td>
+                  <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                  <td>
+                    <span class="badge-status {% if u.is_active %}badge-active{% else %}badge-lost{% endif %}">
+                      {{ 'Active' if u.is_active else 'Disabled' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 0.35rem;">
+                      <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" class="btn btn-sm btn-secondary">View</a>
+                      {% if u.id != current_user.id %}
+                        <form action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" method="POST">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-success{% endif %}">
+                            {{ 'Disable' if u.is_active else 'Enable' }}
+                          </button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+      <div class="pagination">
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+            {% if p == pagination.page %}
+              <span class="current">{{ p }}</span>
+            {% else %}
+              <a href="{{ url_for('admin.users', page=p, q=q) }}">{{ p }}</a>
+            {% endif %}
+          {% else %}
+            <span>...</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

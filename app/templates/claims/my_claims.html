@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}My Claims — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container container-md">
+    <div class="page-header">
+      <div>
+        <h1>My Ownership Claims</h1>
+        <p>Track the verification status of claims you submitted on found items</p>
+      </div>
+      <a href="{{ url_for('claims.received_claims') }}" class="btn btn-secondary btn-sm">Received Claims</a>
+    </div>
+
+    {% if claims %}
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for c in claims %}
+          <div class="card">
+            <div class="card-header" style="flex-wrap: wrap;">
+              <div>
+                <strong>Claim on: {{ c.item.title }}</strong>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Submitted {{ c.created_at.strftime('%b %d, %Y') }}</div>
+              </div>
+              <span class="badge-status badge-{{ c.status }}">{{ c.status }}</span>
+            </div>
+
+            <div class="card-body">
+              <p><strong>Your Verification Details:</strong> {{ c.details }}</p>
+              {% if c.where_lost %}<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">Location specified: {{ c.where_lost }}</p>{% endif %}
+
+              {% if c.status == 'accepted' %}
+                <div class="alert alert-success" style="margin-top: 1rem; margin-bottom: 0;">
+                   Your claim was verified and accepted by the finder! You can contact them to arrange collection.
+                </div>
+              {% elif c.status == 'rejected' %}
+                <div class="alert alert-danger" style="margin-top: 1rem; margin-bottom: 0;">
+                   Your claim could not be verified by the finder.
+                </div>
+              {% else %}
+                <div class="alert alert-warning" style="margin-top: 1rem; margin-bottom: 0;">
+                  ⏳ Waiting for the finder to review your submitted details.
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="card-footer" style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+              <a href="{{ url_for('items.detail', item_id=c.item_id) }}" class="btn btn-sm btn-primary">View Found Item</a>
+              <a href="{{ url_for('messages.conversation', other_user_id=c.item.user_id, item_id=c.item_id) }}" class="btn btn-sm btn-secondary">Message Finder</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state card">
+        <div class="empty-icon"></div>
+        <h3>No claims submitted</h3>
+        <p>You haven't submitted any ownership claims yet. If you see your lost item in the Found listings, you can claim it directly.</p>
+        <div style="margin-top: 1rem;">
+          <a href="{{ url_for('main.browse', type='found') }}" class="btn btn-primary btn-sm">Browse Found Items</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

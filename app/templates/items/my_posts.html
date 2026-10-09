@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}My Posts — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container">
+    <div class="page-header">
+      <div>
+        <h1>My Reported Items</h1>
+        <p>Manage, edit, or update statuses of all your lost and found listings</p>
+      </div>
+      <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('items.post_lost') }}" class="btn btn-danger">+ Report Lost Item</a>
+        <a href="{{ url_for('items.post_found') }}" class="btn btn-success">+ Report Found Item</a>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="tabs">
+      <a href="{{ url_for('items.my_posts') }}" class="tab-link {% if not type_filter %}active{% endif %}">All Posts</a>
+      <a href="{{ url_for('items.my_posts', type='lost') }}" class="tab-link {% if type_filter == 'lost' %}active{% endif %}">Lost Items</a>
+      <a href="{{ url_for('items.my_posts', type='found') }}" class="tab-link {% if type_filter == 'found' %}active{% endif %}">Found Items</a>
+    </div>
+
+    {% if items.items %}
+      <div class="items-grid">
+        {% for item in items.items %}
+          <div class="item-card">
+            <div class="item-card-img">
+              {% if item.image_path %}
+                <img src="{{ url_for('static', filename='uploads/' ~ item.image_path) }}" alt="{{ item.title }}">
+              {% else %}
+                <span>{{ item.category.icon if item.category else '' }}</span>
+              {% endif %}
+            </div>
+            <div class="item-card-body">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge-status badge-{{ item.item_type }}">{{ item.item_type }}</span>
+                <span class="badge-status badge-{{ item.status }}">{{ item.status.replace('_', ' ') }}</span>
+              </div>
+              <h3 class="item-card-title">{{ item.title }}</h3>
+              <p class="item-card-desc">{{ item.description or 'No description' }}</p>
+              <div class="item-card-meta">
+                <span> {{ item.city.name if item.city else 'Location' }}</span>
+                <span> {{ item.date_occurred.strftime('%b %d, %Y') }}</span>
+              </div>
+            </div>
+            <div class="item-card-footer" style="display: flex; justify-content: space-between; gap: 0.5rem;">
+              <a href="{{ url_for('items.detail', item_id=item.id) }}" class="btn btn-sm btn-primary">Details</a>
+              <a href="{{ url_for('items.edit', item_id=item.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if items.pages > 1 %}
+        <div class="pagination">
+          {% for p in items.iter_pages() %}
+            {% if p %}
+              {% if p == items.page %}
+                <span class="current">{{ p }}</span>
+              {% else %}
+                <a href="{{ url_for('items.my_posts', page=p, type=type_filter) }}">{{ p }}</a>
+              {% endif %}
+            {% else %}
+              <span>...</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="empty-state card">
+        <div class="empty-icon"></div>
+        <h3>No posts found</h3>
+        <p>You haven't posted any items under this category yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

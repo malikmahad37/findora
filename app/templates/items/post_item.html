@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}{% if item_type == 'lost' %}Report Lost Item{% else %}Report Found Item{% endif %} — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container container-md">
+    <div class="card" style="box-shadow: var(--shadow-md);">
+      <div class="card-header" style="border-left: 5px solid {% if item_type == 'lost' %}var(--lost-color){% else %}var(--found-color){% endif %};">
+        <div>
+          <h2>{% if item_type == 'lost' %} Report a Lost Item{% else %} Report a Found Item{% endif %}</h2>
+          <p>{% if item_type == 'lost' %}Provide accurate details so our rule-based matching engine can alert you when a match is found.{% else %}Help someone recover their lost belonging. Only enter details you want visible publicly.{% endif %}</p>
+        </div>
+        <span class="badge-status badge-{{ item_type }}" style="font-size: 0.85rem; padding: 0.35rem 0.8rem;">
+          {{ item_type|upper }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+          {{ form.hidden_tag() }}
+
+          <!-- Item Title & Category -->
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="title">Item Title / Name *</label>
+              {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="e.g. Black Leather Wallet, iPhone 13 Pro, Student ID Card", id="title", autofocus=true) }}
+              {% for error in form.title.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="form-group">
+              <label for="category_id">Category *</label>
+              {{ form.category_id(class="form-control" + (" is-invalid" if form.category_id.errors else ""), id="category_id") }}
+              {% for error in form.category_id.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="description">Detailed Description</label>
+            {{ form.description(class="form-control", rows="3", placeholder="Describe how it looks, where you think it happened, context...", id="description") }}
+          </div>
+
+          <!-- Date & Brand/Color -->
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="date_occurred">Date {% if item_type == 'lost' %}Lost{% else %}Found{% endif %} *</label>
+              {{ form.date_occurred(class="form-control" + (" is-invalid" if form.date_occurred.errors else ""), type="date", id="date_occurred") }}
+              {% for error in form.date_occurred.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="form-group">
+              <label for="brand">Brand / Manufacturer (optional)</label>
+              {{ form.brand(class="form-control", placeholder="e.g. Apple, Samsung, Dell, Fossil, Nike", id="brand") }}
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="color">Primary Color (optional)</label>
+              {{ form.color(class="form-control", placeholder="e.g. Black, Blue, Silver, Maroon", id="color") }}
+            </div>
+
+            <div class="form-group">
+              <label for="contact_preference">Contact Preference</label>
+              {{ form.contact_preference(class="form-control", id="contact_preference") }}
+              <small class="form-text">Choose how people can reach you about this post.</small>
+            </div>
+          </div>
+
+          <!-- Dynamic Hierarchical Location -->
+          <div style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: var(--border-radius); margin: 1.5rem 0; border: 1px solid var(--border-color);">
+            <h4 style="margin-bottom: 0.25rem;"> Location Details</h4>
+            <p style="font-size: 0.85rem; margin-bottom: 1rem;">Select dynamic cascading location to enable geographic smart matching.</p>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="country_id">Country</label>
+                {{ form.country_id(class="form-control", id="country_id") }}
+              </div>
+
+              <div class="form-group">
+                <label for="region_id">Province / State / Region</label>
+                {{ form.region_id(class="form-control", id="region_id") }}
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="city_id">City / District</label>
+                {{ form.city_id(class="form-control", id="city_id") }}
+              </div>
+
+              <div class="form-group">
+                <label for="area_id">Area / Locality / Campus</label>
+                {{ form.area_id(class="form-control", id="area_id") }}
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="location_text">Specific Spot / Landmark / Room (optional)</label>
+              {{ form.location_text(class="form-control", placeholder="e.g. Central Library 2nd Floor, Main Cafeteria, Shaheenabad Block B", id="location_text") }}
+            </div>
+          </div>
+
+          <!-- Private Identifying Details -->
+          <div class="form-group">
+            <label for="identifying_details">
+              Identifying Marks & Verification Details
+              <span class="text-muted" style="font-weight: 400;">({% if item_type == 'found' %}Keep secret details out of public sight if you want claimants to verify them!{% else %}Specify unique signs to verify ownership.{% endif %})</span>
+            </label>
+            {{ form.identifying_details(class="form-control", rows="2", placeholder="e.g. Small scratch on bottom right corner, blue sticker on lid, contains student card inside...", id="identifying_details") }}
+          </div>
+
+          <!-- Image Upload with Drag & Drop Preview -->
+          <div class="form-group">
+            <label>Item Photo (optional, Max 5MB)</label>
+            <div class="upload-area">
+              <div style="font-size: 2.5rem; margin-bottom: 0.5rem;"></div>
+              <strong>Click to upload</strong> or drag and drop an image here
+              <p style="font-size: 0.8rem; margin-top: 0.25rem;">PNG, JPG, JPEG, WEBP accepted (Max 5MB)</p>
+              {{ form.image(id="image") }}
+              <img id="image-preview" class="upload-preview" style="display: none;" alt="Preview">
+            </div>
+          </div>
+
+          <!-- Submit Actions -->
+          <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn {% if item_type == 'lost' %}btn-danger{% else %}btn-success{% endif %} btn-lg" style="flex: 1;">
+              {% if item_type == 'lost' %}Publish Lost Item Report{% else %}Publish Found Item Report{% endif %}
+            </button>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary btn-lg">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Ensure country choices are initially loaded if empty
+  document.addEventListener('DOMContentLoaded', function() {
+    var cSelect = document.getElementById('country_id');
+    if (cSelect && cSelect.options.length <= 1) {
+      fetch('/api/location-search?q=')
+        .catch(function(){});
+    }
+  });
+</script>
+{% endblock %}

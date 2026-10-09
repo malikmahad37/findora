@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Sent Messages — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container container-md">
+    <div class="page-header">
+      <div>
+        <h1>Sent Messages</h1>
+        <p>Outbox messages you have sent to other users</p>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="{{ url_for('messages.inbox') }}" class="btn btn-secondary btn-sm">Inbox</a>
+        <a href="{{ url_for('messages.sent') }}" class="btn btn-primary btn-sm">Sent</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        {% if sent_messages %}
+          <div class="conversation-list">
+            {% for msg in sent_messages %}
+              <a href="{{ url_for('messages.conversation', other_user_id=msg.receiver_id, item_id=msg.item_id) }}" class="conv-item">
+                <div class="avatar-circle">
+                  {% if msg.receiver.avatar %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ msg.receiver.avatar) }}" alt="{{ msg.receiver.full_name }}">
+                  {% else %}
+                    {{ msg.receiver.initials() }}
+                  {% endif %}
+                </div>
+                <div class="conv-meta">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span class="conv-name">To: {{ msg.receiver.full_name }}</span>
+                    <small class="text-muted">{{ msg.created_at.strftime('%b %d, %H:%M') }}</small>
+                  </div>
+                  {% if msg.item %}
+                    <div style="font-size: 0.78rem; color: var(--primary);">Re: {{ msg.item.title }}</div>
+                  {% endif %}
+                  <div class="conv-preview">{{ msg.body }}</div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-icon"></div>
+            <h3>No sent messages</h3>
+            <p>You haven't initiated any conversations yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

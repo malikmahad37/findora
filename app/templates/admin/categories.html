@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Categories — Admin Console{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <h3>Admin Console</h3>
+    </div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link"><span class="nav-icon"></span> Overview</a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Users</a>
+      <a href="{{ url_for('admin.posts') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Posts</a>
+      <a href="{{ url_for('admin.claims') }}" class="admin-nav-link"><span class="nav-icon"></span> Claims Review</a>
+      <a href="{{ url_for('admin.reports') }}" class="admin-nav-link"><span class="nav-icon"></span> Flagged Reports</a>
+      <a href="{{ url_for('admin.locations') }}" class="admin-nav-link"><span class="nav-icon"></span> Dynamic Locations</a>
+      <a href="{{ url_for('admin.categories') }}" class="admin-nav-link active"><span class="nav-icon"></span> Categories</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1>Item Categories</h1>
+        <p>Configure classification tags and icons used for item reporting</p>
+      </div>
+    </div>
+
+    <!-- Add Category Card -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3>+ Add New Category</h3>
+      </div>
+      <div class="card-body">
+        <form action="{{ url_for('admin.add_category') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-row">
+            <div class="form-group" style="flex: 2;">
+              <label for="name">Category Name</label>
+              <input type="text" name="name" id="name" class="form-control" placeholder="e.g. Sports Equipment, Musical Instruments" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="icon">Emoji Icon</label>
+              <input type="text" name="icon" id="icon" class="form-control" placeholder="e.g. , , ">
+            </div>
+            <div class="form-group" style="flex: 1; align-self: flex-end;">
+              <button type="submit" class="btn btn-primary btn-block">Add Category</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Category List Table -->
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Icon</th>
+                <th>Category Name</th>
+                <th>Associated Items</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in categories %}
+                <tr>
+                  <td style="font-size: 1.5rem; text-align: center; width: 60px;">{{ c.icon }}</td>
+                  <td><strong>{{ c.name }}</strong></td>
+                  <td>{{ c.items.count() }} items</td>
+                  <td>
+                    <span class="badge-status {% if c.is_active %}badge-active{% else %}badge-lost{% endif %}">
+                      {{ 'Active' if c.is_active else 'Disabled' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                      <form action="{{ url_for('admin.toggle_category', cat_id=c.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm {% if c.is_active %}btn-secondary{% else %}btn-success{% endif %}">
+                          {{ 'Disable' if c.is_active else 'Enable' }}
+                        </button>
+                      </form>
+
+                      {% if c.items.count() == 0 %}
+                        <form action="{{ url_for('admin.delete_category', cat_id=c.id) }}" method="POST" onsubmit="return confirm('Delete this category?');">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

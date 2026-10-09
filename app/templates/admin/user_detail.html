@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}User: {{ user.full_name }} — Admin Console{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <h3>Admin Console</h3>
+    </div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link"><span class="nav-icon"></span> Overview</a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-link active"><span class="nav-icon"></span> Manage Users</a>
+      <a href="{{ url_for('admin.posts') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Posts</a>
+      <a href="{{ url_for('admin.claims') }}" class="admin-nav-link"><span class="nav-icon"></span> Claims Review</a>
+      <a href="{{ url_for('admin.reports') }}" class="admin-nav-link"><span class="nav-icon"></span> Flagged Reports</a>
+      <a href="{{ url_for('admin.locations') }}" class="admin-nav-link"><span class="nav-icon"></span> Dynamic Locations</a>
+      <a href="{{ url_for('admin.categories') }}" class="admin-nav-link"><span class="nav-icon"></span> Categories</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <a href="{{ url_for('admin.users') }}" class="btn-ghost">← Back to Users</a>
+        <h1>{{ user.full_name }}</h1>
+        <p>{{ user.email }} • Role: <strong>{{ user.role|upper }}</strong></p>
+      </div>
+      <div>
+        {% if user.id != current_user.id %}
+          <form action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn {% if user.is_active %}btn-danger{% else %}btn-success{% endif %}">
+              {{ 'Disable Account' if user.is_active else 'Activate Account' }}
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- User Information -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3>User Profile Information</h3>
+      </div>
+      <div class="card-body">
+        <div class="detail-meta">
+          <div class="detail-meta-item">
+            <label>Full Name</label>
+            <p>{{ user.full_name }}</p>
+          </div>
+          <div class="detail-meta-item">
+            <label>Email Address</label>
+            <p>{{ user.email }}</p>
+          </div>
+          <div class="detail-meta-item">
+            <label>Phone Number</label>
+            <p>{{ user.phone or 'Not provided' }}</p>
+          </div>
+          <div class="detail-meta-item">
+            <label>Registration Date</label>
+            <p>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+          </div>
+          <div class="detail-meta-item">
+            <label>Account Status</label>
+            <p><span class="badge-status {% if user.is_active %}badge-active{% else %}badge-lost{% endif %}">{{ 'Active' if user.is_active else 'Disabled' }}</span></p>
+          </div>
+          <div class="detail-meta-item">
+            <label>Last Login</label>
+            <p>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Posts -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3>User Items ({{ items|length }})</h3>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if items %}
+                {% for itm in items %}
+                  <tr>
+                    <td><strong><a href="{{ url_for('items.detail', item_id=itm.id) }}">{{ itm.title }}</a></strong></td>
+                    <td><span class="badge-status badge-{{ itm.item_type }}">{{ itm.item_type }}</span></td>
+                    <td>{{ itm.category.name if itm.category else '—' }}</td>
+                    <td>{{ itm.date_occurred.strftime('%Y-%m-%d') }}</td>
+                    <td><span class="badge-status badge-{{ itm.status }}">{{ itm.status }}</span></td>
+                    <td><a href="{{ url_for('items.detail', item_id=itm.id) }}" class="btn btn-sm btn-secondary">View</a></td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="6" class="text-center text-muted" style="padding: 1.5rem;">No items posted by this user.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Activity -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Recent User Activity</h3>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Action</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if recent_activity %}
+                {% for act in recent_activity %}
+                  <tr>
+                    <td>{{ act.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td><span class="badge-status badge-active">{{ act.action }}</span></td>
+                    <td>{{ act.details or '—' }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="3" class="text-center text-muted" style="padding: 1.5rem;">No recent activity logs.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

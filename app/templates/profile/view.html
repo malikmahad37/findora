@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container container-sm">
+    <div class="card" style="box-shadow: var(--shadow-md);">
+      <div class="card-header">
+        <h2>User Profile</h2>
+        <a href="{{ url_for('profile.edit') }}" class="btn btn-primary btn-sm">Edit Profile</a>
+      </div>
+
+      <div class="card-body text-center" style="padding: 2.5rem 1.5rem;">
+        <div class="profile-avatar" style="margin: 0 auto 1.25rem;">
+          {% if user.avatar %}
+            <img src="{{ url_for('static', filename='uploads/' ~ user.avatar) }}" alt="{{ user.full_name }}">
+          {% else %}
+            {{ user.initials() }}
+          {% endif %}
+        </div>
+
+        <h3 style="margin-bottom: 0.25rem;">{{ user.full_name }}</h3>
+        <p style="margin-bottom: 0.5rem;">{{ user.email }}</p>
+        <span class="badge-status {% if user.is_admin %}badge-resolved{% else %}badge-active{% endif %}">
+          {{ user.role|upper }}
+        </span>
+
+        <div style="margin-top: 2rem; background: var(--bg-tertiary); padding: 1.25rem; border-radius: var(--border-radius); text-align: left; display: flex; flex-direction: column; gap: 0.75rem;">
+          <div>
+            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.1rem;">Phone Number</label>
+            <p style="margin-bottom: 0; font-weight: 600;">{{ user.phone or 'Not provided' }}</p>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.1rem;">Member Since</label>
+            <p style="margin-bottom: 0; font-weight: 600;">{{ user.created_at.strftime('%B %d, %Y') }}</p>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.1rem;">Last Login</label>
+            <p style="margin-bottom: 0; font-weight: 600;">{{ user.last_login.strftime('%B %d, %Y at %I:%M %p') if user.last_login else 'Never' }}</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: center;">
+          <a href="{{ url_for('profile.edit') }}" class="btn btn-secondary">Edit Details</a>
+          <a href="{{ url_for('profile.change_password') }}" class="btn btn-secondary">Change Password</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

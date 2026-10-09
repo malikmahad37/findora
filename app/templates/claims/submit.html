@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Claim Item — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container container-md">
+    <div class="card" style="box-shadow: var(--shadow-md);">
+      <div class="card-header" style="border-left: 5px solid var(--success);">
+        <div>
+          <h2>Submit Ownership Claim</h2>
+          <p>Provide private identifying details to prove this found item belongs to you.</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- Target Found Item Summary -->
+        <div style="display: flex; gap: 1rem; background: var(--bg-tertiary); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 1.5rem; align-items: center;">
+          <div style="width: 60px; height: 60px; border-radius: 8px; background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-size: 1.75rem; flex-shrink: 0; overflow: hidden;">
+            {% if item.image_path %}
+              <img src="{{ url_for('static', filename='uploads/' ~ item.image_path) }}" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              {{ item.category.icon if item.category else '' }}
+            {% endif %}
+          </div>
+          <div>
+            <h4 style="margin-bottom: 0.25rem;">{{ item.title }}</h4>
+            <small class="text-muted">
+              Found on {{ item.date_occurred.strftime('%b %d, %Y') }} •  {{ item.full_location }}
+            </small>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+          <div>
+            <strong>How Verification Works:</strong><br>
+            Please provide specific details that only the rightful owner would know — such as lock screen wallpapers, unique scratches, internal contents, or serial numbers. The finder will review this private information before approving the return.
+          </div>
+        </div>
+
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="form-group">
+            <label for="details">Private Identifying Information *</label>
+            {{ form.details(class="form-control" + (" is-invalid" if form.details.errors else ""), rows="4", placeholder="e.g. The wallet contains a blue metro card with ID #... / The phone has a crack on the top left speaker...", id="details", autofocus=true) }}
+            {% for error in form.details.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="where_lost">Where do you believe you lost it?</label>
+              {{ form.where_lost(class="form-control", placeholder="e.g. Near Cafeteria Table 4 or Block C", id="where_lost") }}
+            </div>
+
+            <div class="form-group">
+              <label for="approx_date">Approximate Date & Time</label>
+              {{ form.approx_date(class="form-control", placeholder="e.g. Tuesday around 2:30 PM", id="approx_date") }}
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-success btn-lg" style="flex: 1;">
+              Submit Verification Claim
+            </button>
+            <a href="{{ url_for('items.detail', item_id=item.id) }}" class="btn btn-secondary btn-lg">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

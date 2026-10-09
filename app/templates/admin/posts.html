@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Posts — Admin Console{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <h3>Admin Console</h3>
+    </div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link"><span class="nav-icon"></span> Overview</a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Users</a>
+      <a href="{{ url_for('admin.posts') }}" class="admin-nav-link active"><span class="nav-icon"></span> Manage Posts</a>
+      <a href="{{ url_for('admin.claims') }}" class="admin-nav-link"><span class="nav-icon"></span> Claims Review</a>
+      <a href="{{ url_for('admin.reports') }}" class="admin-nav-link"><span class="nav-icon"></span> Flagged Reports</a>
+      <a href="{{ url_for('admin.locations') }}" class="admin-nav-link"><span class="nav-icon"></span> Dynamic Locations</a>
+      <a href="{{ url_for('admin.categories') }}" class="admin-nav-link"><span class="nav-icon"></span> Categories</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1>All Item Listings</h1>
+        <p>Review, moderate, edit status, or remove posts across the platform</p>
+      </div>
+      <div>
+        <form method="GET" action="{{ url_for('admin.posts') }}" style="display: flex; gap: 0.5rem;">
+          <select name="type" class="form-control" style="width: 130px;">
+            <option value="">All Types</option>
+            <option value="lost" {% if selected_type == 'lost' %}selected{% endif %}>Lost</option>
+            <option value="found" {% if selected_type == 'found' %}selected{% endif %}>Found</option>
+          </select>
+          <select name="status" class="form-control" style="width: 140px;">
+            <option value="">All Statuses</option>
+            <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
+            <option value="possible_match" {% if selected_status == 'possible_match' %}selected{% endif %}>Possible Match</option>
+            <option value="claim_pending" {% if selected_status == 'claim_pending' %}selected{% endif %}>Claim Pending</option>
+            <option value="resolved" {% if selected_status == 'resolved' %}selected{% endif %}>Resolved</option>
+            <option value="returned" {% if selected_status == 'returned' %}selected{% endif %}>Returned</option>
+            <option value="closed" {% if selected_status == 'closed' %}selected{% endif %}>Closed</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Poster</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for itm in items %}
+                <tr>
+                  <td>
+                    <div style="font-weight: 600;">
+                      <a href="{{ url_for('items.detail', item_id=itm.id) }}">{{ itm.title }}</a>
+                    </div>
+                  </td>
+                  <td><span class="badge-status badge-{{ itm.item_type }}">{{ itm.item_type }}</span></td>
+                  <td>{{ itm.poster.full_name }}</td>
+                  <td>{{ itm.category.name if itm.category else '—' }}</td>
+                  <td>{{ itm.city.name if itm.city else (itm.location_text or '—') }}</td>
+                  <td>
+                    <form action="{{ url_for('admin.update_post_status', item_id=itm.id) }}" method="POST" style="display: inline-flex; gap: 0.25rem;">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <select name="status" class="form-control" style="font-size: 0.75rem; padding: 0.2rem 0.4rem; height: auto;" onchange="this.form.submit()">
+                        <option value="active" {% if itm.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="possible_match" {% if itm.status == 'possible_match' %}selected{% endif %}>Match</option>
+                        <option value="claim_pending" {% if itm.status == 'claim_pending' %}selected{% endif %}>Pending</option>
+                        <option value="resolved" {% if itm.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="returned" {% if itm.status == 'returned' %}selected{% endif %}>Returned</option>
+                        <option value="closed" {% if itm.status == 'closed' %}selected{% endif %}>Closed</option>
+                      </select>
+                    </form>
+                  </td>
+                  <td>{{ itm.date_occurred.strftime('%Y-%m-%d') }}</td>
+                  <td>
+                    <div style="display: flex; gap: 0.35rem;">
+                      <a href="{{ url_for('items.detail', item_id=itm.id) }}" class="btn btn-sm btn-secondary">View</a>
+                      <form action="{{ url_for('admin.delete_post', item_id=itm.id) }}" method="POST" onsubmit="return confirm('Permanently remove this post?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+      <div class="pagination">
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+            {% if p == pagination.page %}
+              <span class="current">{{ p }}</span>
+            {% else %}
+              <a href="{{ url_for('admin.posts', page=p, type=selected_type, status=selected_status) }}">{{ p }}</a>
+            {% endif %}
+          {% else %}
+            <span>...</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

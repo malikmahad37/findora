@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Dynamic Locations — Admin Console{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <h3>Admin Console</h3>
+    </div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link"><span class="nav-icon"></span> Overview</a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Users</a>
+      <a href="{{ url_for('admin.posts') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Posts</a>
+      <a href="{{ url_for('admin.claims') }}" class="admin-nav-link"><span class="nav-icon"></span> Claims Review</a>
+      <a href="{{ url_for('admin.reports') }}" class="admin-nav-link"><span class="nav-icon"></span> Flagged Reports</a>
+      <a href="{{ url_for('admin.locations') }}" class="admin-nav-link active"><span class="nav-icon"></span> Dynamic Locations</a>
+      <a href="{{ url_for('admin.categories') }}" class="admin-nav-link"><span class="nav-icon"></span> Categories</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1>Dynamic Geographical Locations</h1>
+        <p>Manage Country → Province/State → City/District → Local Area hierarchical data</p>
+      </div>
+    </div>
+
+    <!-- Quick Add Bar -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3>Add New Location Tier</h3>
+      </div>
+      <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+          <!-- Add Country -->
+          <div>
+            <h5>+ Add Country</h5>
+            <form action="{{ url_for('admin.add_country') }}" method="POST" style="margin-top: 0.5rem;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="form-group">
+                <input type="text" name="name" class="form-control" placeholder="Country name" required>
+              </div>
+              <div class="form-group">
+                <input type="text" name="code" class="form-control" placeholder="ISO Code (e.g. PK, US)">
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm btn-block">Add Country</button>
+            </form>
+          </div>
+
+          <!-- Add Region -->
+          <div>
+            <h5>+ Add Region / State</h5>
+            <form action="{{ url_for('admin.add_region') }}" method="POST" style="margin-top: 0.5rem;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="form-group">
+                <select name="country_id" class="form-control" required>
+                  <option value="">Select Country</option>
+                  {% for c in countries %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <input type="text" name="name" class="form-control" placeholder="Region name (e.g. Punjab)" required>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm btn-block">Add Region</button>
+            </form>
+          </div>
+
+          <!-- Add City -->
+          <div>
+            <h5>+ Add City / District</h5>
+            <form action="{{ url_for('admin.add_city') }}" method="POST" style="margin-top: 0.5rem;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="form-group">
+                <select name="region_id" class="form-control" required>
+                  <option value="">Select Region</option>
+                  {% for c in countries %}
+                    <optgroup label="{{ c.name }}">
+                      {% for r in c.regions %}
+                        <option value="{{ r.id }}">{{ r.name }}</option>
+                      {% endfor %}
+                    </optgroup>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <input type="text" name="name" class="form-control" placeholder="City name (e.g. Gujranwala)" required>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm btn-block">Add City</button>
+            </form>
+          </div>
+
+          <!-- Add Area -->
+          <div>
+            <h5>+ Add Area / Locality</h5>
+            <form action="{{ url_for('admin.add_area') }}" method="POST" style="margin-top: 0.5rem;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="form-group">
+                <select name="city_id" class="form-control" required>
+                  <option value="">Select City</option>
+                  {% for c in countries %}
+                    {% for r in c.regions %}
+                      <optgroup label="{{ r.name }}">
+                        {% for ct in r.cities %}
+                          <option value="{{ ct.id }}">{{ ct.name }}</option>
+                        {% endfor %}
+                      </optgroup>
+                    {% endfor %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <input type="text" name="name" class="form-control" placeholder="Area name (e.g. Shaheenabad)" required>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm btn-block">Add Area</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tree View of Configured Locations -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Existing Location Hierarchy</h3>
+      </div>
+      <div class="card-body">
+        {% if countries %}
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for c in countries %}
+              <div style="border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                  <h4 style="color: var(--primary);"> {{ c.name }} {% if c.code %}({{ c.code }}){% endif %}</h4>
+                  <form action="{{ url_for('admin.delete_location', loc_type='country', loc_id=c.id) }}" method="POST" onsubmit="return confirm('Delete this entire country and child regions?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete Country</button>
+                  </form>
+                </div>
+
+                {% if c.regions.count() > 0 %}
+                  <div style="margin-left: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                    {% for r in c.regions %}
+                      <div style="background: var(--bg-tertiary); padding: 0.875rem; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <strong> {{ r.name }}</strong>
+                          <form action="{{ url_for('admin.delete_location', loc_type='region', loc_id=r.id) }}" method="POST" onsubmit="return confirm('Delete this region and its cities?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-ghost" style="color: var(--danger); font-size: 0.8rem;">Delete Region</button>
+                          </form>
+                        </div>
+
+                        {% if r.cities.count() > 0 %}
+                          <div style="margin-left: 1.25rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                            {% for ct in r.cities %}
+                              <div style="background: var(--bg-card); padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                  <span> {{ ct.name }}</span>
+                                  <form action="{{ url_for('admin.delete_location', loc_type='city', loc_id=ct.id) }}" method="POST" onsubmit="return confirm('Delete this city?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-ghost" style="color: var(--danger); font-size: 0.75rem;">Delete City</button>
+                                  </form>
+                                </div>
+
+                                {% if ct.areas.count() > 0 %}
+                                  <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.4rem; padding-left: 0.75rem;">
+                                    {% for a in ct.areas %}
+                                      <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: var(--bg-tertiary); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">
+                                         {{ a.name }}
+                                        <form action="{{ url_for('admin.delete_location', loc_type='area', loc_id=a.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete area?');">
+                                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                          <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 0; line-height: 1;"></button>
+                                        </form>
+                                      </span>
+                                    {% endfor %}
+                                  </div>
+                                {% endif %}
+                              </div>
+                            {% endfor %}
+                          </div>
+                        {% else %}
+                          <small class="text-muted" style="display: block; margin-left: 1rem; margin-top: 0.25rem;">No cities added yet.</small>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-muted" style="margin-left: 1.5rem; font-size: 0.85rem;">No regions configured for this country.</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <p>No locations created yet. Use the form above to add countries, regions, cities, and local areas.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Search Items — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container">
+    <div class="page-header">
+      <div>
+        <h1>Search Lost & Found</h1>
+        <p>Find items using full-text search across titles, descriptions, brands, and colors</p>
+      </div>
+    </div>
+
+    <!-- Search Input & Advanced Options -->
+    <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+      <form method="GET" action="{{ url_for('main.search') }}">
+        <div class="search-bar" style="margin-bottom: 1.25rem;">
+          <input type="text" name="q" value="{{ q }}" placeholder="Search by keywords (e.g. 'black wallet', 'Samsung galaxy', 'leather bag')..." autofocus>
+          <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+
+        <div class="filter-bar-grid">
+          <div>
+            <label for="type">Item Type</label>
+            <select name="type" id="type" class="form-control">
+              <option value="">All (Lost & Found)</option>
+              <option value="lost" {% if selected_type == 'lost' %}selected{% endif %}>Lost</option>
+              <option value="found" {% if selected_type == 'found' %}selected{% endif %}>Found</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="category_id">Category</label>
+            <select name="category_id" id="category_id" class="form-control">
+              <option value="">All Categories</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>
+                  {{ cat.icon }} {{ cat.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label for="date_from">Date From</label>
+            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ date_from }}">
+          </div>
+
+          <div>
+            <label for="date_to">Date To</label>
+            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ date_to }}">
+          </div>
+
+          <div>
+            <label for="sort">Sort Order</label>
+            <select name="sort" id="sort" class="form-control">
+              <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest First</option>
+              <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-actions" style="margin-top: 1rem;">
+          <button type="submit" class="btn btn-secondary btn-sm">Update Results</button>
+          <a href="{{ url_for('main.search') }}" class="btn btn-ghost btn-sm">Clear Search</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Search Results -->
+    {% if q %}
+      <div style="margin-bottom: 1rem; color: var(--text-secondary);">
+        Found <strong>{{ items.total }}</strong> result{{ 's' if items.total != 1 else '' }} for "<em>{{ q }}</em>"
+      </div>
+    {% endif %}
+
+    {% if items.items %}
+      <div class="items-grid">
+        {% for item in items.items %}
+          <div class="item-card">
+            <div class="item-card-img">
+              {% if item.image_path %}
+                <img src="{{ url_for('static', filename='uploads/' ~ item.image_path) }}" alt="{{ item.title }}" loading="lazy">
+              {% else %}
+                <span>{{ item.category.icon if item.category else '' }}</span>
+              {% endif %}
+            </div>
+            <div class="item-card-body">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge-status badge-{{ item.item_type }}">{{ item.item_type }}</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">{{ item.date_occurred.strftime('%b %d, %Y') }}</span>
+              </div>
+              <h3 class="item-card-title">{{ item.title }}</h3>
+              <p class="item-card-desc">{{ item.description or 'No additional description provided.' }}</p>
+              <div class="item-card-meta">
+                <span> {{ item.city.name if item.city else 'Location' }}</span>
+                {% if item.brand %}<span> {{ item.brand }}</span>{% endif %}
+                {% if item.color %}<span> {{ item.color }}</span>{% endif %}
+              </div>
+            </div>
+            <div class="item-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="badge-status badge-{{ item.status }}">{{ item.status.replace('_', ' ') }}</span>
+              <a href="{{ url_for('items.detail', item_id=item.id) }}" class="btn btn-sm btn-primary">Details</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if items.pages > 1 %}
+        <div class="pagination">
+          {% for p in items.iter_pages() %}
+            {% if p %}
+              {% if p == items.page %}
+                <span class="current">{{ p }}</span>
+              {% else %}
+                <a href="{{ url_for('main.search', page=p, q=q, type=selected_type, category_id=selected_category_id, date_from=date_from, date_to=date_to, sort=sort) }}">{{ p }}</a>
+              {% endif %}
+            {% else %}
+              <span>...</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="empty-state card">
+        <div class="empty-icon"></div>
+        <h3>No matching results</h3>
+        <p>We couldn't find any items matching your search criteria. Try using different keywords or broadening filters.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

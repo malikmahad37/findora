@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container">
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1>Welcome, {{ current_user.full_name }}</h1>
+        <p>Manage your lost and found listings, review matches, and communicate with finders.</p>
+      </div>
+      <div>
+        <a href="{{ url_for('items.post_lost') }}" class="btn btn-primary">+ Report Item</a>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-num">{{ my_lost_count }}</div>
+          <div class="stat-label">My Lost Items</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-num">{{ my_found_count }}</div>
+          <div class="stat-label">My Found Items</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-num">{{ possible_matches_count }}</div>
+          <div class="stat-label">Possible Matches</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-num">{{ my_resolved_items|length }}</div>
+          <div class="stat-label">Resolved / Returned</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-num">{{ unread_messages_count }}</div>
+          <div class="stat-label">Unread Messages</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Left Column: Active Posts -->
+      <div class="dashboard-col">
+        <div class="card">
+          <div class="card-header">
+            <h3>My Active Posts ({{ my_active_items|length }})</h3>
+            <a href="{{ url_for('items.my_posts') }}" class="btn btn-sm btn-secondary">View All</a>
+          </div>
+          <div class="card-body" style="padding: 1rem;">
+            {% if my_active_items %}
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                {% for item in my_active_items %}
+                  <div style="display: flex; gap: 1rem; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); align-items: center;">
+                    <div style="width: 50px; height: 50px; border-radius: 8px; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; overflow: hidden; flex-shrink: 0;">
+                      {% if item.image_path %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ item.image_path) }}" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                      {% else %}
+                        {{ item.category.icon if item.category else '' }}
+                      {% endif %}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <span class="badge-status badge-{{ item.item_type }}">{{ item.item_type }}</span>
+                        <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">{{ item.title }}</strong>
+                      </div>
+                      <small class="text-muted">
+                        Location: {{ item.city.name if item.city else 'General' }} • {{ item.date_occurred.strftime('%b %d, %Y') }}
+                      </small>
+                    </div>
+                    <div style="display: flex; gap: 0.35rem; flex-shrink: 0;">
+                      <a href="{{ url_for('items.detail', item_id=item.id) }}" class="btn btn-sm btn-primary">View</a>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty-state" style="padding: 2rem 1rem;">
+                <div class="empty-icon-text">[No Posts]</div>
+                <h4>No active posts</h4>
+                <p>You haven't reported any lost or found items yet.</p>
+                <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
+                  <a href="{{ url_for('items.post_lost') }}" class="btn btn-sm btn-primary">+ Report Item</a>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Resolved History -->
+        {% if my_resolved_items %}
+          <div class="card">
+            <div class="card-header">
+              <h3>Recently Resolved Items</h3>
+            </div>
+            <div class="card-body" style="padding: 1rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                {% for item in my_resolved_items[:4] %}
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                      <strong>{{ item.title }}</strong>
+                      <span class="badge-status badge-{{ item.status }}" style="margin-left: 0.5rem;">{{ item.status }}</span>
+                    </div>
+                    <a href="{{ url_for('items.detail', item_id=item.id) }}" class="btn btn-sm btn-secondary">Review</a>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Right Column: Notifications & Quick Access -->
+      <div class="dashboard-col">
+        <!-- Unread Notifications -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Recent Notifications</h3>
+            <a href="{{ url_for('notifications.index') }}" class="btn btn-sm btn-secondary">View All</a>
+          </div>
+          <div class="card-body" style="padding: 1rem;">
+            {% if recent_notifications %}
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                {% for n in recent_notifications %}
+                  <div class="notif-item unread">
+                    <div class="notif-content">
+                      <div class="notif-message">{{ n.message }}</div>
+                      <div class="notif-time">{{ n.created_at.strftime('%b %d, %H:%M') }}</div>
+                      {% if n.link %}
+                        <a href="{{ n.link }}" style="font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem; display: inline-block;">Take Action →</a>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty-state" style="padding: 1.5rem 1rem;">
+                <p>No new notifications at this time.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Quick Links / Guide Card -->
+        <div class="card" style="background: linear-gradient(135deg, var(--bg-card), var(--bg-tertiary));">
+          <div class="card-body">
+            <h3 style="margin-bottom: 0.5rem;">Smart Recovery Tips</h3>
+            <ul style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+              <li><strong>Lost an item?</strong> Provide detailed serial numbers or private wallpapers in the identifying details field.</li>
+              <li><strong>Found an item?</strong> Do NOT publish private serial numbers publicly; require the claimant to state them!</li>
+              <li>Check the <strong>Possible Matches</strong> section inside each of your items regularly.</li>
+              <li>Always meet in a public campus or secure location to return items.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

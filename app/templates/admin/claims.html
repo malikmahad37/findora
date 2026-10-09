@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Claims Moderation — Admin Console{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <h3>Admin Console</h3>
+    </div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link"><span class="nav-icon"></span> Overview</a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Users</a>
+      <a href="{{ url_for('admin.posts') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Posts</a>
+      <a href="{{ url_for('admin.claims') }}" class="admin-nav-link active"><span class="nav-icon"></span> Claims Review</a>
+      <a href="{{ url_for('admin.reports') }}" class="admin-nav-link"><span class="nav-icon"></span> Flagged Reports</a>
+      <a href="{{ url_for('admin.locations') }}" class="admin-nav-link"><span class="nav-icon"></span> Dynamic Locations</a>
+      <a href="{{ url_for('admin.categories') }}" class="admin-nav-link"><span class="nav-icon"></span> Categories</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1>Ownership Claims</h1>
+        <p>Monitor claims and verification attempts submitted across the system</p>
+      </div>
+      <div>
+        <form method="GET" action="{{ url_for('admin.claims') }}" style="display: flex; gap: 0.5rem;">
+          <select name="status" class="form-control" style="width: 150px;">
+            <option value="">All Statuses</option>
+            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="accepted" {% if selected_status == 'accepted' %}selected{% endif %}>Accepted</option>
+            <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Claimant</th>
+                <th>Finder (Owner)</th>
+                <th>Claim Details</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in claims %}
+                <tr>
+                  <td>
+                    <strong><a href="{{ url_for('items.detail', item_id=c.item_id) }}">{{ c.item.title }}</a></strong>
+                  </td>
+                  <td>{{ c.claimant.full_name }}</td>
+                  <td>{{ c.item.poster.full_name }}</td>
+                  <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {{ c.details }}
+                  </td>
+                  <td><span class="badge-status badge-{{ c.status }}">{{ c.status }}</span></td>
+                  <td>{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+                  <td>
+                    <a href="{{ url_for('items.detail', item_id=c.item_id) }}" class="btn btn-sm btn-secondary">View Post</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+      <div class="pagination">
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+            {% if p == pagination.page %}
+              <span class="current">{{ p }}</span>
+            {% else %}
+              <a href="{{ url_for('admin.claims', page=p, status=selected_status) }}">{{ p }}</a>
+            {% endif %}
+          {% else %}
+            <span>...</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

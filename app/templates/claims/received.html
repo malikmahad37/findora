@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Received Claims — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container container-md">
+    <div class="page-header">
+      <div>
+        <h1>Received Claims</h1>
+        <p>Review ownership claims submitted by users on items you reported as found</p>
+      </div>
+      <a href="{{ url_for('claims.my_claims') }}" class="btn btn-secondary btn-sm">My Submitted Claims</a>
+    </div>
+
+    {% if claims %}
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        {% for c in claims %}
+          <div class="card" style="border-left: 4px solid {% if c.status == 'pending' %}var(--warning){% elif c.status == 'accepted' %}var(--success){% else %}var(--danger){% endif %};">
+            <div class="card-header" style="flex-wrap: wrap;">
+              <div>
+                <strong>Claimant: {{ c.claimant.full_name }}</strong>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                  On item: <strong>{{ c.item.title }}</strong> • Submitted {{ c.created_at.strftime('%b %d, %Y') }}
+                </div>
+              </div>
+              <span class="badge-status badge-{{ c.status }}">{{ c.status }}</span>
+            </div>
+
+            <div class="card-body">
+              <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--border-radius-sm); margin-bottom: 1rem;">
+                <strong>Claimant's Verification Details:</strong>
+                <p style="margin-top: 0.35rem; line-height: 1.6;">{{ c.details }}</p>
+                {% if c.where_lost %}<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.2rem;">Lost location stated: {{ c.where_lost }}</p>{% endif %}
+                {% if c.approx_date %}<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0;">Date/time stated: {{ c.approx_date }}</p>{% endif %}
+              </div>
+
+              {% if c.status == 'pending' %}
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                  <a href="{{ url_for('messages.conversation', other_user_id=c.claimant_id, item_id=c.item_id) }}" class="btn btn-secondary btn-sm">
+                     Message Claimant
+                  </a>
+                  <form action="{{ url_for('claims.reject_claim', claim_id=c.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Reject Claim</button>
+                  </form>
+                  <form action="{{ url_for('claims.accept_claim', claim_id=c.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-success btn-sm">Verify & Accept (Mark Returned)</button>
+                  </form>
+                </div>
+              {% else %}
+                <div style="display: flex; justify-content: flex-end;">
+                  <a href="{{ url_for('messages.conversation', other_user_id=c.claimant_id, item_id=c.item_id) }}" class="btn btn-secondary btn-sm">
+                     Message Claimant
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state card">
+        <div class="empty-icon"></div>
+        <h3>No claims received</h3>
+        <p>You haven't received any ownership verification claims on your found items yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

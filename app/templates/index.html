@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}FINDORA — Lost Something? Find It. Found Something? Return It.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-premium">
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+
+  <div class="container hero-premium-container">
+    <div class="hero-premium-grid">
+      <!-- Left Column: Copy & Actions -->
+      <div class="hero-premium-left">
+        <div class="hero-badge">
+          <span class="hero-badge-pulse"></span>
+          <span>Next-Gen Smart Lost & Found Network</span>
+        </div>
+
+        <h1 class="hero-premium-title">
+          Lost Something? <span class="hero-gradient-text">Find It Fast.</span><br>
+          Found Something? <span class="hero-gradient-text-alt">Return Safely.</span>
+        </h1>
+
+        <p class="hero-premium-sub">
+          A smart, verified recovery network connecting universities, cities, and workplaces across Pakistan. Powered by real-time similarity matching and secure claim verification.
+        </p>
+
+        <!-- Quick Live Search Bar in Hero -->
+        <form action="{{ url_for('main.search') }}" method="GET" class="hero-quick-search">
+          <div class="hero-search-input-wrap">
+            <svg style="width: 18px; height: 18px; opacity: 0.6; fill: none; stroke: currentColor; stroke-width: 2;" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" name="q" placeholder="Search lost keys, student card, phone, laptop, bag..." required>
+          </div>
+          <button type="submit" class="btn btn-hero-search">Search Now</button>
+        </form>
+
+        <!-- Primary CTA Buttons -->
+        <div class="hero-action-buttons">
+          <a href="{{ url_for('items.post_lost') }}" class="btn-hero-pill btn-hero-lost">
+            <span class="btn-text">
+              <strong>Report Lost Item</strong>
+              <small>Help us track your item</small>
+            </span>
+          </a>
+          <a href="{{ url_for('items.post_found') }}" class="btn-hero-pill btn-hero-found">
+            <span class="btn-text">
+              <strong>Report Found Item</strong>
+              <small>Reunite with true owner</small>
+            </span>
+          </a>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="hero-trust-row">
+          <div class="trust-item">
+            <span class="trust-check"></span> 100% Free & Open
+          </div>
+          <div class="trust-item">
+            <span class="trust-check"></span> Verified Ownership Claims
+          </div>
+          <div class="trust-item">
+            <span class="trust-check"></span> All Pakistan Cities & Areas
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Visual Showcase -->
+      <div class="hero-premium-right">
+        <div class="hero-visual-card-wrap">
+          <!-- Main Simulated Match Card -->
+          <div class="smart-match-preview-card">
+            <div class="sm-card-header">
+              <div class="sm-card-chip">
+                <span class="sm-chip-dot"></span>
+                <span>Smart Match Engine</span>
+              </div>
+              <div class="sm-match-score-badge">94% MATCH</div>
+            </div>
+
+            <!-- Two matching items compared -->
+            <div class="sm-items-comparison">
+              <!-- Lost Item Box -->
+              <div class="sm-item-box lost-side">
+                <div class="sm-tag tag-lost">LOST</div>
+                <div class="sm-item-info">
+                  <h4>iPhone 13 Pro</h4>
+                  <p>Blue • Tech Lab / Library</p>
+                  <small>Lost 2 hours ago</small>
+                </div>
+              </div>
+
+              <!-- Match Connector -->
+              <div class="sm-connector">
+                <div class="sm-connector-line"></div>
+                <div class="sm-connector-badge" title="High confidence match">
+                  <svg style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5;" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <div class="sm-connector-line"></div>
+              </div>
+
+              <!-- Found Item Box -->
+              <div class="sm-item-box found-side">
+                <div class="sm-tag tag-found">FOUND</div>
+                <div class="sm-item-info">
+                  <h4>Blue Smartphone</h4>
+                  <p>Tech Lab Block B • Lahore</p>
+                  <small>Found 45 mins ago</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Match Factors Pill List -->
+            <div class="sm-factors">
+              <span class="sm-factor-pill"> Same Category (Electronics)</span>
+              <span class="sm-factor-pill"> Same Location (Tech Lab)</span>
+              <span class="sm-factor-pill"> Matching Color (Blue)</span>
+            </div>
+
+            <div class="sm-card-footer">
+              <span class="sm-status-indicator">Instant Notification Sent to Owner</span>
+              <a href="{{ url_for('main.browse') }}" class="sm-action-link">View Match →</a>
+            </div>
+          </div>
+
+          <!-- Floating Badge 1: Keys Found -->
+          <div class="hero-floating-bubble bubble-top-right">
+            <div class="bubble-content">
+              <strong>Car Keys Handed Over</strong>
+              <small>Claim accepted • Islamabad</small>
+            </div>
+            <span class="bubble-check"></span>
+          </div>
+
+          <!-- Floating Badge 2: Live Activity Pulse -->
+          <div class="hero-floating-bubble bubble-bottom-left">
+            <div class="bubble-content">
+              <strong>Ownership Verified</strong>
+              <small>Student ID Card returned</small>
+            </div>
+            <span class="bubble-ping"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Animated Statistics Counter Bar -->
+    <div class="hero-stats-bar">
+      <div class="hero-stat-box">
+        <div class="stat-number-wrap">
+          <span class="hero-stat-num" data-target="{{ total_lost }}">{{ total_lost }}</span>
+          <span class="stat-plus">+</span>
+        </div>
+        <div class="hero-stat-label">Reported Lost Items</div>
+      </div>
+
+      <div class="hero-stat-divider"></div>
+
+      <div class="hero-stat-box">
+        <div class="stat-number-wrap">
+          <span class="hero-stat-num" data-target="{{ total_found }}">{{ total_found }}</span>
+          <span class="stat-plus">+</span>
+        </div>
+        <div class="hero-stat-label">Items Found & Listed</div>
+      </div>
+
+      <div class="hero-stat-divider"></div>
+
+      <div class="hero-stat-box">
+        <div class="stat-number-wrap">
+          <span class="hero-stat-num" data-target="{{ total_resolved }}">{{ total_resolved }}</span>
+          <span class="stat-plus">+</span>
+        </div>
+        <div class="hero-stat-label">Successfully Returned</div>
+      </div>
+
+      <div class="hero-stat-divider"></div>
+
+      <div class="hero-stat-box">
+        <div class="stat-number-wrap">
+          <span class="hero-stat-num" data-target="{{ total_users }}">{{ total_users }}</span>
+          <span class="stat-plus">+</span>
+        </div>
+        <div class="hero-stat-label">Active Members</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Grid -->
+<section class="features-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Intelligent Features for Real Recovery</h2>
+      <p>Built with reliable software engineering practices to maximize the chance of reuniting people with their lost items.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-text">01</div>
+        <h3>Rule-Based Smart Matching</h3>
+        <p>Calculates multi-factor similarity across category, keywords, geographical proximity, date, brand, and color to automatically suggest candidate matches.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-text">02</div>
+        <h3>Hierarchical Location System</h3>
+        <p>Not locked to one campus! Dynamic Country → Province/State → City/District → Local Area cascading filters work for any institute or general city.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-text">03</div>
+        <h3>Claim & Ownership Verification</h3>
+        <p>Found something valuable? Claimants must supply private verification details (serial numbers, internal content, unique scratches) before return.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-text">04</div>
+        <h3>Direct Internal Messaging</h3>
+        <p>Safely communicate with the item poster inside FINDORA without having to publicly expose personal phone numbers or email addresses.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>How FINDORA Works</h2>
+      <p>Four straightforward steps from losing an item to safe recovery.</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h4>1. Report</h4>
+        <p>Post item details, location, category, date, and photos. Takes less than 60 seconds.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h4>2. Match</h4>
+        <p>Our rule-based engine automatically compares your post against opposite listings and notifies you of high-confidence matches.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h4>3. Verify</h4>
+        <p>Submit a secure claim detailing private identifying marks that only the true owner would know.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h4>4. Return</h4>
+        <p>Coordinate a safe handover via internal messaging and mark the item as Resolved/Returned!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Recent Items Section -->
+<section class="page-content">
+  <div class="container">
+    <div class="page-header" style="margin-bottom: 1.5rem;">
+      <div>
+        <h2>Recently Reported Items</h2>
+        <p>Have you lost or seen any of these items recently?</p>
+      </div>
+      <a href="{{ url_for('main.browse') }}" class="btn btn-secondary">View All Items →</a>
+    </div>
+
+    {% if recent_items %}
+      <div class="items-grid">
+        {% for item in recent_items %}
+          <div class="item-card">
+            <div class="item-card-img">
+              {% if item.image_path %}
+                <img src="{{ url_for('static', filename='uploads/' ~ item.image_path) }}" alt="{{ item.title }}" loading="lazy">
+              {% else %}
+                <span>{{ item.category.icon if item.category else '' }}</span>
+              {% endif %}
+            </div>
+            <div class="item-card-body">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge-status badge-{{ item.item_type }}">{{ item.item_type }}</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">{{ item.date_occurred.strftime('%b %d, %Y') }}</span>
+              </div>
+              <h3 class="item-card-title" title="{{ item.title }}">{{ item.title }}</h3>
+              <p class="item-card-desc">{{ item.description or 'No additional description provided.' }}</p>
+              <div class="item-card-meta">
+                <span>Location: {{ item.city.name if item.city else (item.location_text or 'General Location') }}</span>
+                {% if item.brand %}<span>Brand: {{ item.brand }}</span>{% endif %}
+                {% if item.color %}<span>Color: {{ item.color }}</span>{% endif %}
+              </div>
+            </div>
+            <div class="item-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="badge-status badge-{{ item.status }}">{{ item.status.replace('_', ' ') }}</span>
+              <a href="{{ url_for('items.detail', item_id=item.id) }}" class="btn btn-sm btn-primary">Details</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state card">
+        <div class="empty-icon-text">[No Items]</div>
+        <h3>No items reported yet</h3>
+        <p>Be the first to report a lost or found item in your area!</p>
+        <div style="margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: center;">
+          <a href="{{ url_for('items.post_lost') }}" class="btn btn-primary btn-sm">+ Report Item</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

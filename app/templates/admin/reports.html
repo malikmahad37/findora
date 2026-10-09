@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Flagged Reports — Admin Console{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <h3>Admin Console</h3>
+    </div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link"><span class="nav-icon"></span> Overview</a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Users</a>
+      <a href="{{ url_for('admin.posts') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Posts</a>
+      <a href="{{ url_for('admin.claims') }}" class="admin-nav-link"><span class="nav-icon"></span> Claims Review</a>
+      <a href="{{ url_for('admin.reports') }}" class="admin-nav-link active"><span class="nav-icon"></span> Flagged Reports</a>
+      <a href="{{ url_for('admin.locations') }}" class="admin-nav-link"><span class="nav-icon"></span> Dynamic Locations</a>
+      <a href="{{ url_for('admin.categories') }}" class="admin-nav-link"><span class="nav-icon"></span> Categories</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1>Reported Posts</h1>
+        <p>Review suspicious or spam flags raised by members</p>
+      </div>
+      <div>
+        <form method="GET" action="{{ url_for('admin.reports') }}" style="display: flex; gap: 0.5rem;">
+          <select name="status" class="form-control" style="width: 150px;">
+            <option value="">All Reports</option>
+            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="resolved" {% if selected_status == 'resolved' %}selected{% endif %}>Resolved</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Reported Post</th>
+                <th>Reporter</th>
+                <th>Reason</th>
+                <th>Details</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if reports %}
+                {% for r in reports %}
+                  <tr>
+                    <td>
+                      <strong><a href="{{ url_for('items.detail', item_id=r.item_id) }}">{{ r.item.title }}</a></strong>
+                    </td>
+                    <td>{{ r.reporter.full_name }}</td>
+                    <td><span class="badge-status badge-lost">{{ r.reason }}</span></td>
+                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      {{ r.details or '—' }}
+                    </td>
+                    <td>{{ r.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td><span class="badge-status badge-{{ r.status }}">{{ r.status }}</span></td>
+                    <td>
+                      <div style="display: flex; gap: 0.35rem;">
+                        <a href="{{ url_for('items.detail', item_id=r.item_id) }}" class="btn btn-sm btn-secondary">View Post</a>
+                        {% if r.status != 'resolved' %}
+                          <form action="{{ url_for('admin.resolve_report', report_id=r.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-success">Mark Resolved</button>
+                          </form>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted" style="padding: 2rem;">No reported posts found.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+      <div class="pagination">
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+            {% if p == pagination.page %}
+              <span class="current">{{ p }}</span>
+            {% else %}
+              <a href="{{ url_for('admin.reports', page=p, status=selected_status) }}">{{ p }}</a>
+            {% endif %}
+          {% else %}
+            <span>...</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

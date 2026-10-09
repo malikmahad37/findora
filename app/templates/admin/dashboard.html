@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console — FINDORA{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <h3>Admin Console</h3>
+    </div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link active"><span class="nav-icon"></span> Overview</a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Users</a>
+      <a href="{{ url_for('admin.posts') }}" class="admin-nav-link"><span class="nav-icon"></span> Manage Posts</a>
+      <a href="{{ url_for('admin.claims') }}" class="admin-nav-link"><span class="nav-icon"></span> Claims Review</a>
+      <a href="{{ url_for('admin.reports') }}" class="admin-nav-link"><span class="nav-icon"></span> Flagged Reports</a>
+      <a href="{{ url_for('admin.locations') }}" class="admin-nav-link"><span class="nav-icon"></span> Dynamic Locations</a>
+      <a href="{{ url_for('admin.categories') }}" class="admin-nav-link"><span class="nav-icon"></span> Categories</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1>System Overview</h1>
+        <p>Monitor platform health, posts moderation, and resolution metrics</p>
+      </div>
+      <div>
+        <span class="badge-status badge-active">System Online</span>
+      </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue"></div>
+        <div class="stat-info">
+          <div class="stat-num">{{ stats.total_users }}</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-red"></div>
+        <div class="stat-info">
+          <div class="stat-num">{{ stats.total_lost }}</div>
+          <div class="stat-label">Lost Reports</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green"></div>
+        <div class="stat-info">
+          <div class="stat-num">{{ stats.total_found }}</div>
+          <div class="stat-label">Found Reports</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-purple"></div>
+        <div class="stat-info">
+          <div class="stat-num">{{ stats.resolved_items }}</div>
+          <div class="stat-label">Resolved / Returned</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-yellow"></div>
+        <div class="stat-info">
+          <div class="stat-num">{{ stats.pending_claims }}</div>
+          <div class="stat-label">Pending Claims</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-sky"></div>
+        <div class="stat-info">
+          <div class="stat-num">{{ stats.reported_items }}</div>
+          <div class="stat-label">Pending Reports</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Navigation Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+      <div class="card">
+        <div class="card-body">
+          <h4 style="margin-bottom: 0.25rem;"> User Moderation</h4>
+          <p style="font-size: 0.85rem; margin-bottom: 1rem;">View all registered users, examine their activity history, or toggle account access.</p>
+          <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-secondary">Manage Users →</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h4 style="margin-bottom: 0.25rem;"> Dynamic Location Hierarchy</h4>
+          <p style="font-size: 0.85rem; margin-bottom: 1rem;">Add or edit countries, provinces, cities, and local areas to expand beyond university campuses.</p>
+          <a href="{{ url_for('admin.locations') }}" class="btn btn-sm btn-secondary">Manage Locations →</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h4 style="margin-bottom: 0.25rem;"> Category Management</h4>
+          <p style="font-size: 0.85rem; margin-bottom: 1rem;">Add, enable, disable or organize item classification categories and icons.</p>
+          <a href="{{ url_for('admin.categories') }}" class="btn btn-sm btn-secondary">Manage Categories →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent System Activity Log -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Recent System Activity Logs</h3>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Details</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if recent_logs %}
+                {% for log in recent_logs %}
+                  <tr>
+                    <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ log.user.full_name if log.user else 'System' }}</td>
+                    <td><span class="badge-status badge-active">{{ log.action }}</span></td>
+                    <td>{{ log.details or '—' }}</td>
+                    <td><code>{{ log.ip_address or '127.0.0.1' }}</code></td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted" style="padding: 2rem;">No system activity recorded yet.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

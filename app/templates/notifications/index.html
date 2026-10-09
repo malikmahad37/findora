@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications — FINDORA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="container container-md">
+    <div class="page-header">
+      <div>
+        <h1>Notifications</h1>
+        <p>Stay informed about match results, messages, claims, and updates</p>
+      </div>
+      <form action="{{ url_for('notifications.mark_all_read') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-secondary btn-sm">Mark All as Read</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        {% if notifications.items %}
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            {% for n in notifications.items %}
+              <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+                <div class="notif-icon">
+                  {% if n.notif_type == 'match_found' %}
+                  {% elif n.notif_type == 'new_message' %}
+                  {% elif n.notif_type == 'claim_submitted' %}
+                  {% elif n.notif_type == 'claim_accepted' %}
+                  {% elif n.notif_type == 'claim_rejected' %}
+                  {% else %}{% endif %}
+                </div>
+                <div class="notif-content">
+                  <div class="notif-message">{{ n.message }}</div>
+                  <div class="notif-time">{{ n.created_at.strftime('%b %d, %Y at %I:%M %p') }}</div>
+                  <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.35rem;">
+                    {% if n.link %}
+                      <a href="{{ n.link }}" style="font-size: 0.82rem; font-weight: 600;">View Details →</a>
+                    {% endif %}
+                    {% if not n.is_read %}
+                      <form action="{{ url_for('notifications.mark_read', notif_id=n.id) }}" method="POST" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-ghost" style="font-size: 0.75rem; color: var(--text-muted);">Mark read</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Pagination -->
+          {% if notifications.pages > 1 %}
+            <div class="pagination">
+              {% for p in notifications.iter_pages() %}
+                {% if p %}
+                  {% if p == notifications.page %}
+                    <span class="current">{{ p }}</span>
+                  {% else %}
+                    <a href="{{ url_for('notifications.index', page=p) }}">{{ p }}</a>
+                  {% endif %}
+                {% else %}
+                  <span>...</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-icon"></div>
+            <h3>No notifications</h3>
+            <p>You have no notifications right now.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
